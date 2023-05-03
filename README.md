@@ -30,7 +30,7 @@ Repository for ME314 Introduction to Data Science and Machine Learning 2019. The
 - 
 ## Lecture 8 Unsupervised Learning and Dimensional Reduction
 - Unsupervised learning, PCA, computation of principal components, proportion variance, clustering, $k$-means clustering, hierarchical clustering, linkage, dissimilarity measure.
-- 
+
 ## Lecture 9 Text Analysis
 - Quantitative text analysis, basic concepts (corpus, tokens,stems, lemma, etc.), selecting document, defining features, parts of speech, filtering features (document frequency, term frequency, etc.), stopwords, stemming and lemmatization, descriptive text statistics, lexical diversity, content analysis, dictionary analysis, supervised text models.
 
