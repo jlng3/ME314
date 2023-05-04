@@ -27,7 +27,8 @@ Repository for ME314 Introduction to Data Science and Machine Learning 2019. The
 - Polynomial regression, step functions, piece-wise polynomials, splines, local regression, generalized additive models, decision trees, pruning, classification tree, Gini index and deviance, bagging, out-of-bag error, random forest.
 
 ## Lecture 7 Resampling Methods, Model Selection and Regularization
-- 
+- Cross validation, training error vs. test error, Mallow's Cp, AIC, BIC, bootstrap, linear model selection, regularization, Ridge regression, LASSO.
+
 ## Lecture 8 Unsupervised Learning and Dimensional Reduction
 - Unsupervised learning, PCA, computation of principal components, proportion variance, clustering, $k$-means clustering, hierarchical clustering, linkage, dissimilarity measure.
 
