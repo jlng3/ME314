@@ -1,0 +1,420 @@
+---
+title: "Midterm Assignment, ME314 2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+ 
+<style>
+body {
+text-align: justify
+}
+</style>
+
+![](images/lse-logo.jpg)
+
+#### Summer School 2019 midsession examination  
+
+# ME314 Introduction to Data Science and Machine Learning 
+
+## Suitable for all candidates
+
+
+### Instructions to candidates  
+
+* Complete the assignment by adding your answers directly to the RMarkdown document, knitting the document, and submitting the HTML file to Moodle.   
+* Time allowed: due 19:00 on Wednesday, 7th August 2019.  
+* Submit the assignment via [Moodle](https://shortcourses.lse.ac.uk/course/view.php?id=158).
+
+## Question 1:
+
+This question should be answered using the `Carseats` data set, which is part of the **ISLR** package. This data contains simulated data set containing sales of child car seats at 400 different stores.
+
+```{r}
+#Dataset
+library(ISLR)
+data("Carseats", package = "ISLR")
+```
+
+1.  Fit a regression model predicting Sales using Advertising and Price as predictors.  Interpret the coefficients, the $R^2$, and the Residual standard error from the regression (by explaining each in a few statements).
+
+```{r}
+#Regression Model
+fit <- lm(Sales ~ Advertising + Price, data=Carseats)
+summary(fit)
+```
+
+
+**The multiple linear equation formed is $Sales = 13.003427 + 0.123107 * Advertising - 0.054613 * Price$**
+
+**All coefficients have p-values less than 0.05, indicating that all the regressors fitted are significant to the model at 5% level of significance.**
+
+**Intercept has no physical intepretation as it represents the sales when both advertising and price is 0; while for coefficients, it represents the expected change in the response per unit change in the particular regressor when all of the remaining regressor variables are held constant. For instance, all else being equal, as advertising increases by 1 unit, sales increases by 0.123107 unit; also, all else being equal, as price increases by 1 unit, sales decreases by 0.054613 unit.**
+
+**The adjusted R-squared value is 0.2782, indicating that 27.82% of variability of sales is explained by the model. The low adjusted R-squared value indicate that low variability of sales is explained by the model, thus this model may not be an appropriate model.**
+
+**For a good model, we would prefer the residual standard error to be as close to 0 as possible. In this model, the residual standard error is 2.399, which is considered a large value, which indicates that this might not be a good model for this dataset.**
+
+```{r}
+#Residual Plot
+par(mfrow = c(2, 2))
+plot(fit)
+```
+
+**The first graph displays a rather straight line with slight deviation, indicating that the relationship between response and regressors are somewhat linear.**
+  
+**From the second graph, all the points are located on, or close to the straight line, indicating the data is normally distributed.**
+
+**From the third graph, all points are randomly scattered with no obvious pattern observed, indicating that the variance is constant.**
+  
+**From the fourth graph, most data are clustered with a few data points located far from the cluster, indicating potential leverage point. However, all data are located within the Cook's distance, which indicates the absence of influential point.**
+
+2.  Fit a second model by adding Urban as an interactive variable with Advertising.  Interpret the two new coefficients produced by adding this interaction to the Advertising variable that was already present from the first question, in a few statements.
+
+```{r}
+#Second Regression Model with Interaction Effect
+fit1 <- lm(Sales ~ Advertising * Urban + Price, data=Carseats)
+summary(fit1)
+```
+
+**The multiple linear equation formed is $Sales = 12.988703 + 0.128015 * Advertising - 0.054519 * Price + 0.004602 * Urban - 0.006666 * Advertising * Urban$, with Urban = 1 if the store is located in Urban area, and Urban = 0 otherwise.**
+
+**Coefficients of Advertising and Price have p-values less than 0.05, indicating that both of these regressors are significant to the model at 5% level of significance. However, Urban has p-value of 0.990057, and the interaction between Advertising and Urban has a p-value of 0.869559, both greater than 0.05, indicating that both of these regressors are not significant to the model at 5% level of significance.**
+
+**Advertising: Coefficient of 0.128015 suggests that, while all other regressors remain constant, an increase in advertising by 1 unit would increase the sales by 0.128015 unit.**
+
+**Price: Coefficient of -0.054519 suggests that, while all other regressors remain constant, an increase in price by 1 unit would decrease the sales by 0.054519 unit.**
+
+**UrbanYes: The coefficient does not suggest a relationship between sales and the location of store.**
+
+**Advertising:UrbanYes: The coefficient does not provide an evidence for potential interaction between advertising and the location of the store, and also does not suggest a relationship between the interaction and sales.**
+
+**The adjusted R-squared value is 0.2747, indicating that 27.47% of variability of sales is explained by the model. This value is lower than the previous model, suggesting that this model may not be an appropriate model.**
+
+**For a good model, we would prefer the residual standard error to be as close to 0 as possible. In this model, the residual standard error is 2.405, which is considered a large value, which indicates that this might not be a good model for this dataset.**
+
+3.  Which of these two models is preferable, and why?  
+
+**By comparing the R-squared value, it seems that the second model is preferable. However, the comparison should not be done by comparing R-squared value as R-squared value will increases as we adding more regressors into the model regardless the regressors is significant or not. Instead, we should do comparison by comparing adjusted R-squared value as its value will only increase if the added regressors are significant to the model.**
+
+**By comparison, the first model has a higher adjusted R-squared value of 0.2782 compare to the second model with adjusted R-squared value of 0.2747, which indicates that the first model is actually preferable. This claim is supported by the lower Residual standard error of the first model compare to the second model.**
+
+## Question 2:
+
+You will need to load the core library for the course textbook and any other libraries you find suitable to answer the question:
+```{r}
+#Relevant Packages and Dataset
+data("Weekly", package = "ISLR")
+library("MASS")
+library("class")
+```
+
+This question should be answered using the `Weekly` data set, which is part of the **ISLR** package. This data contains 1,089 weekly stock returns for 21 years, from the beginning of 1990 to the end of 2010.
+
+1.   Perform exploratory data analysis of the `Weekly` data (produce some numerical and graphical summaries). Discuss any patterns that emerge. 
+
+```{r}
+#Summary of the Data
+summary(Weekly)
+```
+
+**From the summary, we can observe that "Direction" is not a quantitative variable as it contains only "Up" and "Down", which makes it a qualitative categorical variable.**
+
+**Also, we can observe that "Today" and all "Lag" variables have the same minimum and maximum value, and their 1st quarter, median, mean and 3rd quarter value are close to each other, which indicate that they might have similar distribution. This can be further examine by the pairs plot below.**
+
+```{r}
+#Correlation of Variables of the Data
+library(purrr, quietly = TRUE)
+library(corrplot, quietly = TRUE)
+
+par(mfrow = c(1, 2))
+pairs(Weekly)
+
+corr <- cor(Weekly[, -9])
+high_value <- apply(abs(corr) > 0.8, 2, any)
+corrplot(corr[high_value, high_value], method = "number")
+```
+
+**From the pairs graph, the graph between today and lag1, lag2, lag3, lag4 and lag5 respectively are identical, which supports the claim that they might have similar distribution. This can also be supported by the correlation function as the correlation between year and lag1, lag2, lag3, lag4 and lag5 respectively are very close to each other.**
+
+**The pairs graph for "Direction" shows only plotting at both extreme end of the graph, indicating that "Direction" is a categorical variable with 2 categories.**
+
+**Also, as shown in the correlation function, only the correlation between Year and Volume is significant with correlation of 0.84194162, while correlation of Years with all the "lags" and "Today" are very small.**
+
+```{r}
+#install.packages("gridExtra")
+library(gridExtra)
+library(ggplot2)
+
+{
+lag1 <- qplot(x = Lag1, data = Weekly, main = "Histogram of Lag 1")
+lag2 <- qplot(x = Lag2, data = Weekly, main = "Histogram of Lag 2")
+lag3 <- qplot(x = Lag3, data = Weekly, main = "Histogram of Lag 3")
+lag4 <- qplot(x = Lag4, data = Weekly, main = "Histogram of Lag 4")
+lag5 <- qplot(x = Lag5, data = Weekly, main = "Histogram of Lag 5")
+Today <- qplot(x = Today, data = Weekly, main = "Histogram of Lag 6")
+grid.arrange(lag1,lag2,lag3,lag4,lag5,Today, nrow = 3, ncol = 2)
+}
+```
+
+
+**From the graph above, it can be seen that the distribution resembles a bell-shaped curve, suggesting that all the stock returns is normally distributed, thus support the claim that they have similar distribution.**
+
+```{r}
+#Plot of Trading Volume over Years
+plot(Weekly$Volume, type = "l",main = "Weekly Stock Returns from 1990 to 2010", xlab = "Time", ylab = "Trading Volume")
+```
+
+**The plot of Trading Volume over time shows that trading volume increases over time. Towards the end of the dataset, there is a gradual decline in volume and increase in variability of the trading volume, supporting the claim that there is a strong correlation exist between trading volume and year.**
+
+```{r}
+{
+par(mfrow = c(3, 2))
+  
+#Boxplot Illustrating Relationship between "Direction" and Percentage Change in Stock Return
+p1 <- boxplot(Weekly$Today ~ Weekly$Direction, col = c("red","blue"), main = "This Week", xlab = "Direction", ylab = "Percentage Change in Stock Return")
+
+p2 <- boxplot(Weekly$Lag1 ~ Weekly$Direction, col = c("red","blue"), main = "Last Week", xlab = "Direction", ylab = "Percentage Change in Stock Return")
+
+p3 <- boxplot(Weekly$Lag2 ~ Weekly$Direction, col = c("red","blue"), main = "Two Weeks Ago", xlab = "Direction", ylab = "Percentage Change in Stock Return")
+
+p4 <- boxplot(Weekly$Lag3 ~ Weekly$Direction, col = c("red","blue"), main = "Three Weeks Ago", xlab = "Direction", ylab = "Percentage Change in Stock Return")
+
+p5 <- boxplot(Weekly$Lag4 ~ Weekly$Direction, col = c("red","blue"), main = "Four Weeks Ago", xlab = "Direction", ylab = "Percentage Change in Stock Return")
+
+p6 <- boxplot(Weekly$Lag5 ~ Weekly$Direction, col = c("red","blue"), main = "Five Weeks Ago", xlab = "Direction", ylab = "Percentage Change in Stock Return")
+}
+```
+
+**boxplots are plotted to illustrate the relationship between "Direction" and the percentage change in stock return. The first boxplot illustrates the direction of market movement today versus percentage change in stock return in the current week and it shows an identical percentage change in stock returns for both positive and negative direction.** 
+
+**The second boxplot illustrates the direction of market movement for the current week versus percentage change in returns one week ago. The same thing goes with the third, fourth, fifth and sixth boxplots, which illustrate the direction of market movement for the current week verses the percentage change in stock returns two weeks ago, three weeks ago, fourth weeks ago and fifth weeks ago, respectively. **
+
+**All 6 boxplots displays almost identical outcome for both "Up" and "Down", suggesting that the previous weeks data is independent of current week and cannot be used to predict current week’s return.**
+
+2. Fit a logistic regression with `Direction` as the response and different combinations of lag variables plus `Volume` as predictors. Use the period from 1990 to 2008 as your training set and 2009-2010 as your test set. Produce a summary of results. 
+
+```{r}
+#Training Set
+Weekly_Training <- Weekly[Weekly$Year %in% c(1980:2008),]
+
+#Test Set
+Weekly_Test <- Weekly[Weekly$Year %in% c(2009:2010),]
+```
+
+```{r}
+#Possible Combinations of Logistic Regression Model
+fits <- list()
+
+{
+fits$f1 <- glm(Direction ~ Lag1 + Volume, data = Weekly_Training, family = binomial)
+fits$f2 <- glm(Direction ~ Lag2 + Volume, data = Weekly_Training, family = binomial)
+fits$f3 <- glm(Direction ~ Lag3 + Volume, data = Weekly_Training, family = binomial)
+fits$f4 <- glm(Direction ~ Lag4 + Volume, data = Weekly_Training, family = binomial)
+fits$f5 <- glm(Direction ~ Lag5 + Volume, data = Weekly_Training, family = binomial)
+
+fits$f6 <- glm(Direction ~ Lag1 + Lag2 + Volume, data = Weekly_Training, family = binomial)
+fits$f7 <- glm(Direction ~ Lag1 + Lag3 + Volume, data = Weekly_Training, family = binomial)
+fits$f8 <- glm(Direction ~ Lag1 + Lag4 + Volume, data = Weekly_Training, family = binomial)
+fits$f9 <- glm(Direction ~ Lag1 + Lag5 + Volume, data = Weekly_Training, family = binomial)
+
+fits$f10 <- glm(Direction ~ Lag2 + Lag3 + Volume, data = Weekly_Training, family = binomial)
+fits$f11 <- glm(Direction ~ Lag2 + Lag4 + Volume, data = Weekly_Training, family = binomial)
+fits$f12 <- glm(Direction ~ Lag2 + Lag5 + Volume, data = Weekly_Training, family = binomial)
+
+fits$f13 <- glm(Direction ~ Lag3 + Lag4 + Volume, data = Weekly_Training, family = binomial)
+fits$f14 <- glm(Direction ~ Lag3 + Lag5 + Volume, data = Weekly_Training, family = binomial)
+fits$f15 <- glm(Direction ~ Lag4 + Lag5 + Volume, data = Weekly_Training, family = binomial)
+
+fits$f16 <- glm(Direction ~ Lag1 + Lag2 + Lag3 + Volume, data = Weekly_Training, family = binomial)
+fits$f17 <- glm(Direction ~ Lag1 + Lag2 + Lag4 + Volume, data = Weekly_Training, family = binomial)
+fits$f18 <- glm(Direction ~ Lag1 + Lag2 + Lag5 + Volume, data = Weekly_Training, family = binomial)
+
+fits$f19 <- glm(Direction ~ Lag1 + Lag3 + Lag4 + Volume, data = Weekly_Training, family = binomial)
+fits$f20 <- glm(Direction ~ Lag1 + Lag3 + Lag5 + Volume, data = Weekly_Training, family = binomial)
+fits$f21 <- glm(Direction ~ Lag1 + Lag4 + Lag5 + Volume, data = Weekly_Training, family = binomial)
+
+fits$f22 <- glm(Direction ~ Lag2 + Lag3 + Lag4 + Volume, data = Weekly_Training, family = binomial)
+fits$f23 <- glm(Direction ~ Lag2 + Lag4 + Lag5 + Volume, data = Weekly_Training, family = binomial)
+fits$f24 <- glm(Direction ~ Lag3 + Lag4 + Lag5 + Volume, data = Weekly_Training, family = binomial)
+
+fits$f25 <- glm(Direction ~ Lag1 + Lag2 + Lag3 + + Lag4 + Volume, data = Weekly_Training, family = binomial)
+fits$f26 <- glm(Direction ~ Lag1 + Lag2 + Lag3 + + Lag5 + Volume, data = Weekly_Training, family = binomial)
+fits$f27 <- glm(Direction ~ Lag2 + Lag3 + Lag4 + + Lag5 + Volume, data = Weekly_Training, family = binomial)
+
+fits$f28 <- glm(Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume, data = Weekly_Training, family = binomial)
+}
+
+#Extract AIC from all the Fitted Model and Arrange According to Descending Order
+AIC <- do.call(cbind, lapply(fits, function (z) summary(z)$aic))
+AIC <- order(AIC, decreasing = "TRUE")
+AIC
+```
+
+**28 models are fitted with different combinations of the "Lag" variables and respective AIC are compared to determine the best model of all the fitted models. Generally, model with lowest AIC is preferred as AIC is the measure of fit which penalizes model for the number of model coefficients. Therefore, we always prefer model with minimum AIC value. By comparison, it is identified that the 6th fitted model has the lowest AIC value, thus it is chosen as the most suitable model for further analysis.**
+
+    Do any of the predictors appear to be statistically significant in your training set? If so, which ones?
+ 
+```{r}
+#Logistic Regression with the Best Identified Model using Training Set
+fit3 <- glm(Direction ~ Lag1 + Lag2 + Volume, data = Weekly_Training, family = binomial)
+summary(fit3)
+```
+
+**From the summary, only Lag1 is significant in the training set with p-value = 0.04054 < 0.05. The rest of the regressors are not significant at 5% confidence level.**
+
+3.  From your test set, compute the confusion matrix, and calculate accuracy, precision, recall and F1. 
+ 
+```{r}
+#Logistic Regression by Removing Insignificant Regressor(Lag2)
+fit4 <- glm(Direction ~ Lag1 + Volume, data = Weekly_Training, family = binomial)
+summary(fit4)
+```
+
+**By comparison, after removing the insignificant variable from fit3, it is discovered that the AIC actually increases, which makes it a less reliable model than fit3. Therefore, Lag2 is retained for computation of confusion matrix even though it is not statistically significant as there is a possibility that Lag2 is a confounding variable.**
+
+```{r}
+#Relevant Packages
+#install.packages("caret")
+library(caret, quietly = TRUE)
+library(stats, quietly = TRUE)
+
+#Logistic Regression
+fit5 <- glm(Direction ~ Lag1 + Lag2 + Volume, data = Weekly_Training, family = binomial)
+
+#Test the Model by Fitting the Test Set into Fitted Model
+fit5_prob = predict(fit5, Weekly_Test, type = "response")
+contrasts(Weekly_Test$Direction)
+
+#Compute the Predictions and Compare to Actual Results
+fit5_predict = rep("Down", length(fit5_prob))
+fit5_predict[fit5_prob > 0.5] = "Up"
+
+#Confusion Matrix
+CM_log <- confusionMatrix(mode = "prec_recall", data = factor(fit5_predict), reference = Weekly_Test$Direction)
+CM_log
+```    
+     
+    Explain what the confusion matrix is telling you about the types of mistakes made by logistic regression, and what can you learn from additional measures of fit like accuracy, precision, recall, and F1.
+
+**From the summary of confusion matrix above, define "Down" as Positive and "Up" as Negative.**
+
+**Accuracy: Accuracy is a ratio of correctly predicted observation to the total observations. We can conclude that the percentage of correct predictions on the test data is 52.88%. In other words, 47.12% is the training error rate, which is considered to be overly optimistic as there is a possibility of overfitting.**
+
+**Recall: Recall is the ratio of correctly predicted positive observations to the all observations in actual class. For the weeks that the market actually went "Down", the model predicts correctly 62.79% of the time, which is considered good as it is greater than 0.5.**
+
+**Precision: Precision is the ratio of correctly predicted positive observations to the total predicted positive observations. High precision relates to low false positive rate. In this case, precision is only 45% therefore it indicates that this model has a relatively high false positive rate.**
+
+**F1 Score is the weighted average of Precision and Recall. Therefore, this score takes both false positives and false negatives into account. In this case, F1 score is 52.43%, roughly equivalent to accuracy. As it is preferable to have F1 closer to 1, this model is considered only moderately good.**
+
+```{r}
+Type1Error = CM_log$table[3]/(CM_log$table[3]+CM_log$table[4])
+Type1Error
+
+Type2Error = 1 - (CM_log$table[1]/(CM_log$table[1]+CM_log$table[2]))
+Type2Error
+```
+
+**Also, we would generally wish to have high True Positive and True Negative rate as they represents accurate prediction; Type I Error is known as False Positive Rate, which means that the actual movement is "Down" but the model predict is as "Up"; Type II Error is known as False Negative Rate, which means that the actual movement is "Up" but the model predict it as "Down".**
+
+**From our model, we identified Type I Error as 54.10% and Type II Error as 37.21%. This means that, when the market actually move "Down", the model will predict it to go "Up" 54.10% of the time; when the market actually move "Up", the model will predict it to go "Down" 37.21% of the time. Therefore, we can say that this model is better in predicting the "Up" movement.**
+
+4.  (Extra credit) Experiment with alternative classification methods. 
+
+    Present the results of your experiments reporting method, associated confusion matrix, and measures of fit on the test set like accuracy, precision, recall, and F1.
+    
+```{r}
+#Linear Discriminant Analysis
+#Required Packages
+library(MASS)
+
+#Fit the Model with Linear Discriminant Analysis
+fit6 <- lda(Direction ~ Lag1 + Lag2 + Volume, data = Weekly_Training)
+
+#Test the Model by Fitting the Test Set into Fitted Model
+fit6_prob = predict(fit6, Weekly_Test, type = "response")
+fit6_predict = fit6_prob$class
+
+#Confusion Matrix
+CM_LDA <- confusionMatrix(mode = "prec_recall", data = factor(fit6_predict), reference = Weekly_Test$Direction)
+CM_LDA
+```
+
+
+```{r}
+#Quantitative Descriptive Analysis
+#Required Packages
+library(MASS)
+
+#Fit the Model with Linear Discriminant Analysis
+fit7 <- qda(Direction ~ Lag1 + Lag2 + Volume, data = Weekly_Training)
+
+#Test the Model by Fitting the Test Set into Fitted Model
+fit7_prob = predict(fit7, Weekly_Test, type = "response")
+fit7_predict = fit7_prob$class
+
+#Confusion Matrix
+CM_QDA <- confusionMatrix(mode = "prec_recall", data = factor(fit7_predict), reference = Weekly_Test$Direction)
+CM_QDA
+```
+
+```{r}
+#K Nearest Neighbour
+#Required Packages
+library(class, quietly = TRUE)
+library(caret, quietly = TRUE)
+
+#Varying K in KNN Model to Decide the Best K
+set.seed(1234)
+trctrl <- trainControl(method = "repeatedcv", number = 10, repeats =3)
+fit8 <- train(Direction ~ Lag1 + Lag2 + Volume, data = Weekly_Training, method = "knn", trControl = trctrl, preProcess = c("center", "scale"), tuneLength = 25)
+fit8
+```
+
+**From the model, it is identified that the accuracy is the highest when k=43. Therefore, k=43 is used for the KNN model below.**
+
+```{r}
+fit8_prob = predict(fit8, Weekly_Test)
+CM_KNN <- confusionMatrix(mode = "prec_recall", data = factor(fit8_prob), reference = Weekly_Test$Direction)
+CM_KNN
+```
+
+```{r}
+#Bagging
+#Required Packages
+#install.packages("randomForest")
+library(randomForest, quietly = TRUE)
+
+bag <- randomForest(Direction ~ Lag1 + Lag2 + Volume, data = Weekly_Training, mtry = 3)
+bag_predict = predict(bag, Weekly_Test, type = "response")
+
+CM_bag <- confusionMatrix(mode = "prec_recall", data = factor(bag_predict), reference = Weekly_Test$Direction)
+CM_bag
+```
+
+```{r}
+#Random Forest
+library(randomForest, quietly = TRUE)
+
+rf <- randomForest(Direction ~ Lag1 + Lag2 + Volume, data = Weekly_Training, mtry = 1)
+rf_predict = predict(rf, Weekly_Test, type = "response")
+
+CM_rf <- confusionMatrix(mode = "prec_recall", data = factor(rf_predict), reference = Weekly_Test$Direction)
+CM_rf
+```
+
+```{r}
+#Comparing Results
+library(knitr, quietly = TRUE)
+
+Table <- rbind(CM_log$overall["Accuracy"], CM_LDA$overall["Accuracy"], CM_QDA$overall["Accuracy"], CM_KNN$overall["Accuracy"], CM_bag$overall["Accuracy"], CM_rf$overall["Accuracy"])
+
+rownames(Table) = c("Logistic Regression", "Linear Discriminant Analysis", "Quantitative Discriminant Analysis", "K-Nearest Neighbour", "Bagging", "Random Forest")
+colnames(Table) = "Accuracy"
+
+kable(Table)
+```
+
+**By comparison, it can be seen that Logistic Regression and Linear Discriminant Analysis gives that same accuracy of 52.88%. Bagging and Random Forest also give the same predictive accuracy of 50.96%. Quantitative Descriptive Analysis gives the worst prediction accuracy of only 46.15%, and the best predictor in this case is K-Nearest Neighbour with K = 45, with accuracy of 57.69%.**
+
+**Accuracy: KNN > GLM = LDA > Random Forest = Bagging > QDA**

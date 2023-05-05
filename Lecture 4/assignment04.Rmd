@@ -1,0 +1,285 @@
+---
+title: "Lab 4 - Linear Regression"
+author: "Ng Jian Long"
+output: html_document
+---
+
+This assignment is based on the material covered in James et al. We will subsequently open up solutions to the problem sets.
+
+## Exercise 4.1
+
+This question involves the use of multiple linear regression on the `Auto` data set. So load the data set from the `ISLR` package first.
+
+If the following code chunk returns an error, you most likely have to install the `ISLR` package first. Use `install.packages("ISLR")` if this is the case.
+
+```{r}
+library(ISLR)
+
+data("Auto", package = "ISLR")
+```
+
+
+(a) Produce a scatterplot matrix which includes all of the variables in the data set.
+
+```{r}
+pairs(Auto)
+```
+
+(b) Compute the matrix of correlations between the variables using the function `cor()`. You will need to exclude the `name` variable, which is qualitative.
+
+```{r}
+Auto1 <- Auto[,-9]
+cor(Auto1)
+
+#Alternative
+#cor(Auto[, names(Auto) !='name'])
+```
+
+(c) Use the `lm()` function to perform a multiple linear regression with `mpg` as the response and all other variables except `name` as the predictors. Use the `summary()` function to print the results. Comment on the output. For instance:
+
+```{r}
+fit <- lm(mpg ~ .,Auto1)
+summary(fit)
+
+#Alternative
+#fit <- lm(mpg ~ . -name, data = Auto)
+#str(fit)
+#summary(fit)
+```
+
+    i. Is there a relationship between the predictors and the response?
+    
+**There is a relationship between the predictors and the response, as implied by adjusted R-squared value of 0.8182, implying that 81.82% of the data can be explained by the model. However, there are variables not statistically significant to the model, which are "cylinders", "horsepower" and "acceleration".**
+    
+    ii. Which predictors appear to have a statistically significant relationship to the response?
+        
+**"displacement", "weight", "year" and "origin" are statistically significant to the response.**
+    
+    iii. What does the coefficient for the `year` variable suggest?  
+    
+**All else being equal, as year increases, mpg increases. Specifically, as year increases by 1, mpg increases by 0.75.**
+  
+(d) Use the `plot()` function to produce diagnostic plots of the linear regression fit. Comment on any problems you see with the fit. Do the residual plots suggest any unusually large outliers? Does the leverage plot identify any observations with unusually high leverage?
+
+```{r}
+par(mfrow = c(2,2))
+plot(fit)
+#plot(Auto$weight,Auto$mpg)
+
+```
+
+**The first graph displays a parabola, indicating that the relationship between response and regressors are not linear. It suggests that the relationship can be expressed with a quadratic function.**
+  
+**The second graph displays heavier tails on the right, indicate that the data is skewed to the right (positively skewed). It indicates that mode > mean > median. Most data located on, or close to the straight line, indicating that the data is normally distributed.**
+  
+**From the third graph, the line appears somewhat horizontal and the residuals are randomly scattered, indicating that the variance is constant (homoskedasticity).**
+  
+**From the fourth graph, most data are clustered with a data points (data 14) located far from the cluster, indicating potential leverage point. However, all data are located within the Cook's distance, which indicates that there is no influential point in this dataset.**
+
+(e) Use the `*` and `:` symbols to fit linear regression models with interaction effects. Do any interactions appear to be statistically significant?
+
+```{r}
+#* check for cylinders, displacement and cylinders:displacement; 
+#: only check for cylinders : displacement
+lm.fit <- lm(mpg ~ cylinders * displacement + weight * displacement, data = Auto) 
+summary(lm.fit)
+```
+
+**Interaction between displacement and weight is statistically significant, while the interaction between cylinders and displacement is not.**
+
+## Exercise 4.2
+
+This question should be answered using the `Carseats` dataset from the `ISLR` package. So load the data set from the `ISLR` package first.
+
+```{r}
+data("Carseats", package = "ISLR")
+```
+
+(a) Fit a multiple regression model to predict `Sales` using `Price`,
+`Urban`, and `US`.
+
+```{r}
+fit1 <- lm(Sales ~ Price + Urban + US, data = Carseats)
+summary(fit1)
+```
+
+(b) Provide an interpretation of each coefficient in the model. Be
+careful -- some of the variables in the model are qualitative!
+
+**All else being equal, an increase in price by 1 unit would decrease the sales by 0.054459 unit; sales in urban is on average 0.021916 unit lesser than non-urban areas; sales in US is on average 1.200573 unit higher than in non-US countries.**
+
+#Sample Answer
+**Price: suggest a relationship between price and sales given the low p-value of the t-statistics. The coefficient states a negative relationship between price and sales: as price increases, sales decreases.**
+
+**UrbanYes: The linear regression suggest that there is not enough evidence for a relationship between the location of the store and the number of sales based.**
+
+**USYes: suggests that there is a relationship between whether the store is in the US or not and the number of sales based.**
+
+(c) Write out the model in equation form, being careful to handle the qualitative variables properly.
+
+**Sales = 13.043469 -0.054459Price - 0.021916Urban + 1.200573US**
+
+**where Urban = 1 when the store is located in urban area, 0 otherwise; US = 1 when the store is located in US, 0 otherwise.**
+
+(d) For which of the predictors can you reject the null hypothesis $H_0 : \beta_j =0$?
+
+**Since the Urban variable has a p-value of 0.936 > 0.05, it is not statistically significant to the model, thus the null hypothesis for the Urban variable is rejected.**
+
+(e) On the basis of your response to the previous question, fit a smaller model that only uses the predictors for which there is evidence of association with the outcome.
+
+```{r}
+fit2 <- lm(Sales ~ Price + US, data = Carseats)
+summary(fit2)
+```
+
+(f) How well do the models in (a) and (e) fit the data?
+
+**Adjusted R-squared for (e) is higher than (a), indicating that more variability is explained by the model. However, the value of 0.2354 is still very low as it indicates only 23.54% of the variability can be explained by the model.**
+
+(g) Using the model from (e), obtain 95% confidence intervals for the coefficient(s).
+
+```{r}
+confint(fit2)
+```
+
+(h) Is there evidence of outliers or high leverage observations in the model from (e)?
+
+```{r}
+par(mfrow = c(2, 2))
+plot(fit2)
+```
+
+**The first graph displays a rather straight line, indicating that the relationship between response and regressors are linear.**
+  
+**In the second graph, most data located on, or close to the straight line, indicating that the data is normally distributed.**
+  
+**From the third graph, the line appears somewhat horizontal and the residuals are randomly scattered, indicating that the variance is constant (homoskedasticity).**
+  
+**From the fourth graph, most data are clustered with a data points located far from the cluster, indicating potential leverage point. However, all data are located within the Cook's distance, which indicates that there is no influential point in this dataset.**
+
+## Exercise 4.3 (Optional)
+
+In this exercise you will create some simulated data and will fit simple linear regression models to it. Make sure to use `set.seed(1)` prior to starting part (a) to ensure consistent results.
+
+(a) Using the `rnorm()` function, create a vector, `x`, containing 100 observations drawn from a $N(0,1)$ distribution. This represents a feature, `X`.
+
+```{r}
+#set.seed() create simulated values that are reproducible. set.seed(5) means that everytime simulation is done, the first 5 will be the same.
+set.seed(1)
+x <- rnorm(100, mean = 0, sd = 1)
+```
+
+(b) Using the `rnorm()` function, create a vector, `eps`, containing 100 observations drawn from a $N(0,0.25)$ distribution i.e. a normal distribution with mean zero and variance 0.25.
+
+```{r}
+set.seed(1)
+eps <- rnorm(100, mean = 0, sd = 0.5)
+```
+
+(c) Using `x` and `eps`, generate a vector `y` according to the model
+$$Y = -1 + 0.5X + \epsilon$$
+```{r}
+y = -1 + 0.5 * x + eps
+```
+
+What is the length of the vector `y`? What are the values of $\beta_0$ and $\beta_1$ in this linear model?
+
+```{r}
+length(y)
+```
+
+**length of vector y = 100; $\beta_0$ = -1 and $\beta_1$ = 0.5.**
+
+(d) Create a scatterplot displaying the relationship between `x` and `y`. Comment on what you observe.
+
+```{r}
+plot(y ~ x)
+```
+
+**The graph displays a somewhat linear relationship between y and x.**
+
+(e) Fit a least squares linear model to predict `y` using `x`. Comment on the model obtained. How do $\hat{\beta}_0$ and $\hat{\beta}_1$ compare to $\beta_0$ and $\beta_1$?
+
+```{r}
+fit3 <- lm(y ~ x)
+summary(fit3)
+```
+
+**The value of \hat{\beta}_0$ and $\hat{\beta}_1$ is very close to $\beta_0$ and $\beta_1$.**
+
+(f) Display the least squares line on the scatterplot obtained in (d). Draw the population regression line on the plot, in a different color. Use the `legend()` command to create an appropriate legend.
+
+```{r}
+{
+plot(y ~ x)
+abline(fit3, col = "blue")
+legend(x=0.4, y=-1.7, c("Regression Line"), col = "blue", lwd = 1, bty = 1)
+}
+```
+
+(g) Now fit a polynomial regression model that predicts $y$ using $x$ and $x^2$. Is there evidence that the quadratic term improves the model fit? Explain your answer.
+
+```{r}
+fit4 <- lm(y ~ poly(x,2))
+summary(fit4)
+```
+
+**The coefficient of the quadratic term is not statistically significant as it has a p-value of 0.0691 > 0.05, thus there is no prove that the quadratic term improves the model fit.**
+
+(h) Repeat (a)-(f) after modifying the data generation process in such a way that there is less noise in the data. The model should remain the same. You can do this by decreasing the variance of the normal distribution used to generate the error term $\epsilon$ in (b). Describe your results.
+
+```{r}
+set.seed(1)
+x1 = rnorm(100, mean = 0, sd = 1)
+eps1 = rnorm(100, mean = 0, sd = 0.1)
+y1 = -1 + 0.5 * x1 + eps1
+fit5 <- lm(y1 ~ x1)
+summary(fit5)
+```
+
+**The new model has all regressors statistically significant to the model. However, the new adjusted R-squared value is 0.956 indicating that more variability is explained by the model, thus proving that this model fits the data better.**
+
+```{r}
+{
+plot(y1 ~ x1)
+  abline(fit5, col = "blue")
+legend(x=0.4, y=-1.7, c("Regression Line"), col = "blue", lwd = 1, bty = 1)
+}
+```
+
+**The graph displays a linear relationship, and most data are located on, or much more closer to the regression line, supporting the claim that the model fits the data better.**
+
+(i) Repeat (a)-(f) after modifying the data generation process in such a way that there is more noise in the data. The model should remain the same. You can do this by increasing the variance of the normal distribution used to generate the error term $\epsilon$ in (b). Describe your results.
+
+```{r}
+set.seed(1)
+x2 = rnorm(100, mean = 0, sd = 1)
+eps2 = rnorm(100, mean = 0, sd = 1)
+y2 = -1 + 0.5 * x2 + eps2
+fit7 <- lm(y2 ~ x2)
+summary(fit7)
+```
+
+**The new model has all regressors statistically significant to the model. However, the new adjusted R-squared value is 0.1712 indicating that lesser variability is explained by the model, thus proving that this model doesn't fit the data well.**
+
+```{r}
+{
+plot(y2 ~ x2)
+  abline(fit7, col = "blue")
+legend(x=0.4, y=-1.7, c("Regression Line"), col = "blue", lwd = 1, bty = 1)
+}
+```
+
+**The data are randomly scattered with no obvious pattern observed, supporting the fact that this model doesn't describe the data well.**
+
+(j) What are the confidence intervals for $\beta_0$ and $\beta_1$ based on the original data set, the noisier data set, and the less noisy data set? Comment on your results.
+
+```{r}
+#Original Dataset
+confint(fit3)
+#Less Noisy Dataset
+confint(fit5)
+#Noisier Dataset
+confint(fit7)
+```
+**The noisier the dataset, the wider the confidence interval.**
