@@ -1,0 +1,207 @@
+---
+title: "Exercise 8 - Unsupervised Learning - Solution"
+author: "Ng Jian Long"
+output: html_document
+---
+
+### Exercise 8.1
+
+Consider the `USArrests` data. We will now perform hierarchical clustering on the states.
+
+```{r}
+data("USArrests", package = "datasets")  # "package" argument optional here
+set.seed(2)
+```
+
+(a) Using hierarchical clustering with complete linkage and Euclidean distance, cluster the states.
+
+```{r}
+library(stats, quietly = TRUE)
+
+set.seed(1234)
+
+hier.clus <- hclust(dist(USArrests), method = "complete")
+plot(hier.clus)
+```
+
+(b) Cut the dendrogram at a height that results in three distinct clusters. Which states belong to which clusters?
+
+```{r}
+Cut <- cutree(hier.clus, 3)
+c1 <- names(which(Cut == 1))
+c2 <- names(which(Cut == 2))
+c3 <- names(which(Cut == 3))
+
+max_length <- max(length(c1), length(c2), length(c3))
+
+col1 <- rep("", max_length)
+col2 <- rep("", max_length)
+col3 <- rep("", max_length)
+
+col1[1:length(c1)] <- c1
+col2[1:length(c2)] <- c2
+col3[1:length(c3)] <- c3
+
+table <- data.frame(col1, col2, col3)
+table
+```
+
+(c) Hierarchically cluster the states using complete linkage and Euclidean distance, after scaling the variables to have standard deviation one.
+
+```{r}
+library(base, quietly = TRUE)
+
+Scale_Data <- scale(USArrests)
+sd(Scale_Data)
+
+scaled_hier.clus <- hclust(dist(Scale_Data), method = "complete")
+plot(scaled_hier.clus)
+```
+
+(d) What effect does scaling the variables have on the hierarchical clustering obtained? In your opinion, should the variables be scaled before the inter-observation dissimilarities are computed? Provide a justification for your answer.
+
+**Scaling the variables before hierarchical clustering can have a significant effect on the resulting clustering. Hierarchical clustering algorithms typically use a distance metric to calculate the dissimilarity between observations. If the variables are not scaled, then variables with larger scales will contribute more to the distance metric than variables with smaller scales. This can lead to clustering results that are dominated by the variables with larger scales, and the clustering may not accurately capture the underlying structure of the data.**
+
+**By scaling the variables, each variable is transformed to have a similar scale, which means that each variable contributes equally to the distance metric. This can lead to more accurate clustering results that better capture the underlying structure of the data.**
+
+**In my opinion, it is generally a good idea to scale the variables before hierarchical clustering is performed. However, this depends on the nature of the data and the research question being investigated. If the variables are naturally on a similar scale, scaling may not be necessary. Additionally, if the variables have already been pre-processed in a way that ensures they are on a similar scale, then scaling may not be necessary.**
+
+
+### Exercise 8.2
+
+
+(a) Generate a simulated data set with 20 observations in each of three classes (i.e. 60 observations total), and 50 variables.
+
+    **Hint: There are a number of functions in `R` that you can use to generate data. One example is the `rnorm()` function; `runif()` is another option. Be sure to add a mean shift to the observations in each class so that there are three distinct classes.**
+
+```{r}
+set.seed(1234)
+cl1 <- matrix(rnorm(20*50, mean = 0), nrow = 20)
+cl2 <- matrix(rnorm(20*50, mean = 0.5), nrow = 20)
+cl3 <- matrix(rnorm(20*50, mean = 1), nrow = 20)
+sim.data <-rbind(cl1, cl2, cl3)
+```
+
+(b) Perform PCA on the 60 observations and plot the first two principal component score vectors. Use a different color to indicate the observations in each of the three classes. If the three classes appear separated in this plot, then continue on to part (c). If not, then return to part (a) and modify the simulation so that there is greater separation between the three classes. Do not continue to part (c) until the three classes show at least some separation in the first two principal component score vectors.
+
+```{r}
+library(ggplot2, quietly = TRUE)
+PCA <- prcomp(sim.data, scale = TRUE)
+summary(PCA)
+plot(PCA$x[,1:2], col=c(rep(1,20),rep(2,20),rep(3,20)))
+```
+
+(c) Perform $K$-means clustering of the observations with $K = 3$. How well do the clusters that you obtained in $K$-means clustering compare to the true class labels?
+
+    **Hint: You can use the `table()` function in `R` to compare the true class labels to the class labels obtained by clustering. Be careful how you interpret the results: $K$-means clustering will arbitrarily number the clusters, so you cannot simply check whether the true class labels and clustering labels are the same.**
+
+```{r}
+km3 <- kmeans(sim.data, 3, nstart = 20)
+table(km3$cluster, c(rep(1,20),rep(2,20),rep(3,20)))
+```
+
+**The output table shows the number of observations assigned to each cluster by the k-means clustering algorithm. The rows represent the cluster assignments obtained from k-means, while the columns represent the true class labels.**
+
+**From the table, it can be seen that:**
+  **- Cluster 1 has no observations from true class 1, 20 observations from true class 2, and no observations from true class 3.**
+  **- Cluster 2 has 20 observations from true class 1, no observations from true class 2, and no observations from true class 3.**
+  **- Cluster 3 has 3 observations from true class 1, no observations from true class 2, and 17 observations from true class 3.**
+  
+**This suggests that the k-means clustering algorithm did not perfectly separate the three classes, as there are observations assigned to clusters that do not correspond to their true class. However, it has successfully clustered some observations based on their similarity in the dataset.**
+
+(d) Perform $K$-means clustering with $K = 2$. Describe your results.
+
+```{r}
+km2 <- kmeans(sim.data, 2, nstart = 20)
+table(km2$cluster, c(rep(1,20),rep(2,20),rep(3,20)))
+```
+**When $K$ is reduced to 2, the clustering results are less clear. Cluster 1 contains observations from the true class label 2 and 3, while cluster 2 contains a mix of observations from the true class labels 1, 2 and 3. This indicates that the k-means algorithm is not able to separate the three true classes into distinct groups when $K$ is reduced to 2.**
+
+(e) Now perform $K$-means clustering with $K = 4$, and describe your
+results.
+
+```{r}
+km4 <- kmeans(sim.data, 4, nstart = 20)
+table(km4$cluster, c(rep(1,20),rep(2,20),rep(3,20)))
+```
+
+**From the table, we can see that when we increase the number of clusters to 4, the $K$-means algorithm clusters the data points differently than before. Specifically, cluster 1 now contains only points from true class label 1 and 2, cluster 2 contains points from true class labels 2 and 3, cluster 3 contains only points from true class label 3, and cluster 4 contains points from true class labels 1, 2, and 3.**
+
+**Compared to the results of using 2 or 3 clusters, the clustering when using 4 clusters appears to be more accurate, as the overlap between true class labels and clusters is smaller. However, increasing number of clusters also increases risks of overfitting.**
+
+(f) Now perform $K$-means clustering with $K = 3$ on the first two principal component score vectors, rather than on the raw data. That is, perform $K$-means clustering on the $60 \times 2$ matrix of which the first column is the first principal component score vector, and the second column is the second principal component score vector. Comment on the results.
+
+```{r}
+km3.pcv <- kmeans(PCA$x[,1:2], 3, nstart = 20)
+table(km3.pcv$cluster, c(rep(1,20),rep(2,20),rep(3,20)))
+```
+
+**The results seems pretty good. While there are some incorrect points being clustered, the amount is minimal. Overall, the clustering algorithm works pretty well, striking a balance between achieving higher accuracy vs. reducing risk of overfitting.**
+
+(g) Using the `scale()` function, perform $K$-means clustering with $K = 3$ on the data after scaling each variable to have standard deviation one. How do these results compare to those obtained in (b)? Explain.
+
+```{r}
+km3.scale <- kmeans(scale(sim.data), 3, nstart = 20)
+table(km3$cluster, c(rep(1,20),rep(2,20),rep(3,20)))
+```
+**The results seemed to improve, with cluster 2 and 3 contains only true labels, and cluster 1 contains mostly true labels with a few misclassification.**
+
+### Exercise 8.3 (Optional)
+
+On the textbook website, www.StatLearning.com, there is a gene expression data set (`Ch10Ex11.csv`) that consists of 40 tissue samples with measurements on 1,000 genes. The first 20 samples are from healthy patients, while the second 20 are from a diseased group.
+
+(a) Load in the data using `read.csv()`. You will need to select `header=FALSE`.
+
+```{r}
+gene <- read.csv("Ch10Ex11.csv", header = FALSE)
+```
+
+(b) Apply hierarchical clustering to the samples using correlation-based distance, and plot the dendrogram. Do the genes separate the samples into the two groups? Do your results depend on the type of linkage used?
+
+```{r}
+hc1 <- hclust(as.dist(1 - cor(gene)), method = "complete")
+plot(hc1, main = "Complete Linkage with Correlation-Based Distance")
+```
+
+```{r}
+hc2 <- hclust(as.dist(1 - cor(gene)), method = "single")
+plot(hc2, main = "Single Linkage with Correlation-Based Distance")
+```
+
+```{r}
+hc3 <- hclust(as.dist(1 - cor(gene)), method = "average")
+plot(hc3, main = "Average Linkage with Correlation-Based Distance")
+```
+
+**Not all samples are separated into the two groups "Healthy" and "Diseased". From the graphs, only the *single linkage* method separates the samples into two groups. This shows that the linkage method chosen does plays a role in the final results.**
+
+(c) Your collaborator wants to know which genes differ the most across the two groups. Suggest a way to answer this question, and apply it here.
+
+```{r}
+library(knitr, quietly = TRUE)
+
+PC <- prcomp(t(gene))
+total_load <- apply(PC$rotation, 1, sum)
+indices <- order(abs(total_load), decreasing = TRUE)
+
+top10name <- rownames(gene)[indices[1:10]]
+top10load <- total_load[indices[1:10]]
+
+top10gene <- cbind(top10name, top10load)
+colnames(top10gene) <- c("Gene", "Loadings")
+
+#Format the Loadings column
+kable(top10gene)
+```
+
+**We perform principal component analysis (PCA) on the transpose of the gene expression data to identify the genes that contribute the most to the variation between the samples. The `prcomp()` function is used to perform PCA, and the `apply()` function is used to calculate the total loadings for each gene across all principal components.**
+
+**The `indices` variable contains the indices of the genes in descending order of their absolute total loadings, which indicates the strength of their contribution to the overall variation in the data. `indices[1:10]` displays the top 10 genes with the highest absolute total loadings.**
+
+**The `total_load` variable contains the total loadings for each gene in the same order as the gene names in the original dataset. `total_load[indices[1:10]]` displays the total loadings for the top 10 genes.**
+
+**The positive and negative signs of the total loadings indicate the direction of the contribution of each gene to the variation in the data. In this case, the top two genes with the highest absolute total loadings (indices[1] and indices[2]) have positive total loadings, indicating that they are positively correlated with the variation between the two groups of samples. Conversely, the next two genes (indices[3] and indices[4]) have negative total loadings, indicating that they are negatively correlated with the variation between the two groups of samples.**
+
+**Therefore, the result suggests that the top 10 genes with the highest absolute total loadings are the most differentially expressed genes between the healthy and diseased groups, and the direction of their expression changes can be inferred from their signs of total loadings.**
+
+
